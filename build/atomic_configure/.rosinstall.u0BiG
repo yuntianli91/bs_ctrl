@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/yuntian/ros1_ws/src/base_station_ctrl/build/devel/setup.sh

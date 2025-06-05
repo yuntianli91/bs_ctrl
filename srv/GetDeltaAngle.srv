@@ -1,0 +1,4 @@
+LLA dest_LLA       # LLA coordinate of destination
+LLA station_LLA    # LLA coordinate of base station
+---
+DeltaAngle d_angle # delta angles
