@@ -3,7 +3,16 @@ project(base_station_ctrl)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
+# 设置C++标准
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(CMAKE_BUILD_TYPE Debug)
+
+set(CMAKE_CXX_FLAGS_RELEASE "-g -O3")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+add_compile_options(-Wall -Wno-deprecated-declarations -Wno-format -Wno-reorder)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -13,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   roscpp
   std_msgs
+  sensor_msgs
   message_generation
 )
 
@@ -57,14 +67,13 @@ find_package(spdlog REQUIRED)
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  DeltaAngle.msg
-  LLA.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
   GetDeltaAngle.srv
+  SetLocalOrigin.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -81,6 +90,7 @@ generate_messages(
   mavros_msgs
   nav_msgs
   std_msgs
+  sensor_msgs
 )
 
 ################################################
@@ -115,7 +125,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES base_station_ctrl
- CATKIN_DEPENDS geometry_msgs mavros_msgs nav_msgs roscpp std_msgs message_runtime
+ CATKIN_DEPENDS geometry_msgs mavros_msgs nav_msgs roscpp std_msgs message_runtime sensor_msgs
 #  DEPENDS system_lib
 )
 
@@ -146,7 +156,7 @@ target_link_libraries(bs_ctrl_node PRIVATE
   ${catkin_LIBRARIES}
   Eigen3::Eigen
   spdlog::spdlog
-  ${GeographicLic_LIBRARIES}
+  ${GeographicLib_LIBRARIES}
 )
 
 #############

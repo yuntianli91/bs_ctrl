@@ -5,8 +5,19 @@
 // @date        Last modified at 2025-06-05
 // @copyright   Copyright (c) {2024 - } Purple Mountain Lab UAV TEAM.
 
-#include "bs_ctrl.cc"
+#include "base_station_ctrl/bs_ctrl.h"
 
 int main(int argc, char** argv){
+  ros::init(argc, argv, "bs_ctrl_node");
+  ros::NodeHandle nh("~");
+
+  bs_ctrl::Bs_Ctrl bs_ctrl(nh);
+  // start ctrl thread
+  bs_ctrl.startCtrlThread();
+  // start all ros sub, pub, srv, etc.
+  ros::spin();
+  // stop ctrl thread
+  bs_ctrl.stopCtrlThread();
+  
   return 0;
 }

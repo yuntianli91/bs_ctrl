@@ -1,4 +1,7 @@
-LLA dest_LLA       # LLA coordinate of destination
-LLA station_LLA    # LLA coordinate of base station
+float64 lat     # latitude of dest
+float64 lon     # longitude of dest
+float64 alt     # altitude of dest
 ---
-DeltaAngle d_angle # delta angles
+float64 d_pitch   # pitch angle in rad
+bool success    # 
+string message  # 

@@ -1,0 +1,6 @@
+float64 lat       # latitude of local origin
+float64 lon       # longitude of local origin
+float64 alt       # altitude of local origin
+---
+bool success
+string message
