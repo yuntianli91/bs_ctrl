@@ -38,6 +38,7 @@ class AlignBeam{
     lat_orig_ = lat;
     lon_orig_ = lon;
     alt_orig_ = alt;
+    geo_cart_.Reset(lat_orig_, lon_orig_);
   }
   
   // @brief   get align vector from uav to dest

@@ -33,7 +33,7 @@ sDeltaAngles AlignBeam::getAlignVec(double lat_d, double lon_d, double alt_d,
   
   // get align vector and convert to body frame
   Eigen::Vector4d d_vec_enu(x_d - x_u, y_d - y_u, z_d - z_u, 1.0);
-  Eigen::Vector4d d_vec_b = enu_T_b_.transpose() * d_vec_enu;
+  Eigen::Vector3d d_vec_b = (enu_T_b_.transpose() * d_vec_enu).segment<3>(0);
 
   // check minimal threshold
   for (ssize_t i = 0; i < 3; i++){

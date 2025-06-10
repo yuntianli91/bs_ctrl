@@ -72,7 +72,7 @@ add_message_files(
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  GetDeltaAngle.srv
+  AlignBeamYaw.srv
   SetLocalOrigin.srv
 )
 
@@ -157,6 +157,17 @@ target_link_libraries(bs_ctrl_node PRIVATE
   Eigen3::Eigen
   spdlog::spdlog
   ${GeographicLib_LIBRARIES}
+)
+
+# offb demo
+add_executable(offb_demo_node 
+  src/offb_demo.cc
+)
+target_include_directories(offb_demo_node PRIVATE 
+  ${PROJECT_SOURCE_DIR}/include/ 
+)
+target_link_libraries(offb_demo_node PRIVATE
+  ${catkin_LIBRARIES}
 )
 
 #############

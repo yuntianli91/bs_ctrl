@@ -12,12 +12,33 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <sensor_msgs/NavSatFix.h>
+#include <mavros_msgs/State.h>
+#include <mavros_msgs/ExtendedState.h>
+#include <mavros_msgs/RCIn.h>
 #include <mavros_msgs/AttitudeTarget.h>
+#include <mavros_msgs/CommandBool.h>
+#include <mavros_msgs/SetMode.h>
+#include <std_srvs/SetBool.h>
 #include "base_station_ctrl/geo_utils.h"
-#include "base_station_ctrl/GetDeltaAngle.h"
+#include "base_station_ctrl/AlignBeamYaw.h"
 #include "base_station_ctrl/SetLocalOrigin.h"
 
 namespace bs_ctrl{
+typedef struct UavState{
+  bool is_connected_ = false;    
+  bool is_armed_ = false;
+  std::string mode_ = "STABILIZED";
+  
+  unsigned short landed_state_ = 1; // 0-undefined, 1-on ground, 
+                                    // 2-in air, 3-takeoff 4-landing      
+
+  // TODO : add rc related
+  unsigned int rc_chs[8];       // rc channel values
+  // local & global pose
+  Eigen::Quaterniond curr_q_;   // current q in local
+  Eigen::Vector3d curr_t_;      // current t in local
+  Eigen::Vector3d curr_lla_;    // current lla in WGS-84
+}sUavState;
 
 class Bs_Ctrl{
  public:
@@ -28,22 +49,40 @@ class Bs_Ctrl{
 
   void startCtrlThread();
   void stopCtrlThread();
+
+  // @brief   set frequency of ctrl thread, default is 20Hz
+  // @param   freq : 
+  void setCtrlRate(float freq){
+    ptr_ctrl_rate_->reset();
+    ptr_ctrl_rate_ = std::make_unique<ros::Rate>(freq);
+  }
  
  private:
-  bool init_local_origin_{false};
-  std::mutex mtx_local_pose_;
-  std::mutex mtx_global_pose_;
-
+  // ============== ros
   ros::NodeHandle nh_;
-  ros::Subscriber sub_local_pose_;  // subsriber of local pose
-  ros::Subscriber sub_global_pose_;  // subsriber of global pose
-  ros::Publisher pub_att_cmd_;      // publisher of att cmds 
+  ros::Subscriber sub_local_pose_;    // subsriber of local pose
+  ros::Subscriber sub_global_pose_;   // subsriber of global pose
+  ros::Subscriber sub_rc_;            // subscriber of rc input
+  ros::Subscriber sub_state_;         // subscriber of mav state
+  ros::Subscriber sub_ext_state_;     // subscriber of extra state
 
-  unsigned int queue_size_{50};   // default queue_size (50 Hz for 1 min)
-  std::queue<sensor_msgs::NavSatFix> all_global_poses_;
-  std::queue<geometry_msgs::PoseStamped> all_local_poses_;  
-  // Eigen::Vector3d t_;     // translations of uav, store in x, y, z
-  // Eigen::Quaterniond q_;  // quaternions of uav, store in w, x, y, z
+  ros::Publisher pub_att_cmd_;      // publisher of att cmds 
+  ros::Publisher pub_local_pose_;   // publisher of local pose
+
+  ros::ServiceServer server_align_;
+  ros::ServiceServer server_takeoff_;
+  ros::ServiceServer server_set_origin_;
+
+  ros::ServiceClient client_arm_;       // client for arming
+  ros::ServiceClient client_set_mode_;  // client for set flight mode
+
+  std::unique_ptr<ros::Rate> ptr_ctrl_rate_;
+
+  // ==============  all message queues and mutex
+  std::mutex mtx_uav_state_;
+  sUavState curr_uav_state_;
+  // ============== others
+  bool init_local_origin_{false};
 
   std::unique_ptr<geo_utils::AlignBeam> ptr_align_;
   std::thread ctrl_thread_;
@@ -51,17 +90,28 @@ class Bs_Ctrl{
   Eigen::Quaterniond des_q_;  // desired quaternion
   Eigen::Vector3d des_t_;     // desired position
 
+  mavros_msgs::SetMode offb_set_mode_;
+  mavros_msgs::CommandBool arm_cmd_;
+
   // all thread functions
   void CtrlThreadProcess();
+
   // all subscriber callback functions
+  void initAllSub();
+  void StateCb(const mavros_msgs::StateConstPtr &msg);
+  void ExtStateCb(const mavros_msgs::ExtendedStateConstPtr &msg);
+  void RcCb(const mavros_msgs::RCInConstPtr &msg);
   void LocalPoseCb(const geometry_msgs::PoseStampedConstPtr &msg);
   void GlobalPoseCb(const sensor_msgs::NavSatFixConstPtr &msg);
   
   // all server callback functions
+  void initAllSrv();
   bool SetLocalOriginCb(base_station_ctrl::SetLocalOrigin::Request &req,
                         base_station_ctrl::SetLocalOrigin::Response &res);
-  bool GetDeltaAngleCb(base_station_ctrl::GetDeltaAngle::Request &req,
-                       base_station_ctrl::GetDeltaAngle::Response &res);
+  bool AlignBeamYawCb(base_station_ctrl::AlignBeamYaw::Request &req,
+                      base_station_ctrl::AlignBeamYaw::Response &res);
+  bool TakeoffLandCb(std_srvs::SetBool::Request &req, 
+                     std_srvs::SetBool::Response &res);
   
   // @brief   get latest curresponding msg
   // @tparam  T : template param

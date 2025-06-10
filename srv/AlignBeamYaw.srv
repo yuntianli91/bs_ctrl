@@ -2,6 +2,7 @@ float64 lat     # latitude of dest
 float64 lon     # longitude of dest
 float64 alt     # altitude of dest
 ---
-float64 d_pitch   # pitch angle in rad
+float64 d_pitch   # pitch angle in deg
+float64 d_yaw     # yaw angle in deg
 bool success    # 
 string message  # 

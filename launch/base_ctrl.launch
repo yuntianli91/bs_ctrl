@@ -1,0 +1,3 @@
+<launch>
+  <node name="bs_ctrl" type="bs_ctrl_node" pkg="base_station_ctrl" />
+</launch>

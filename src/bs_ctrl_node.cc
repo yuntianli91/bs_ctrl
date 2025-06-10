@@ -14,6 +14,7 @@ int main(int argc, char** argv){
   bs_ctrl::Bs_Ctrl bs_ctrl(nh);
   // start ctrl thread
   bs_ctrl.startCtrlThread();
+  spdlog::info("bs_ctrl_node started.");
   // start all ros sub, pub, srv, etc.
   ros::spin();
   // stop ctrl thread
